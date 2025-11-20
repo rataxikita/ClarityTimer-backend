@@ -1,5 +1,6 @@
 package ClarityTimer.ClarityTimer_backend.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -19,6 +20,7 @@ public class DetalleSesion {
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sesion_id", nullable = false)
+    @JsonBackReference
     private SesionPomodoro sesion; // La "boleta" a la que pertenece
     
     @Column(name = "numero_pomodoro", nullable = false)

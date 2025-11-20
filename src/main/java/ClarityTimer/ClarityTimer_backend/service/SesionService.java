@@ -31,13 +31,35 @@ public class SesionService {
                 .orElseThrow(() -> new ResourceNotFoundException("Personaje no encontrado"));
 
         SesionPomodoro sesion = request.toEntity(usuario, personaje);
-        return sesionRepository.save(sesion);
+        
+        System.out.println("🎮 Creando sesión:");
+        System.out.println("   - Total pomodoros: " + sesion.getTotalPomodoros());
+        System.out.println("   - Tiempo total minutos: " + sesion.getTiempoTotalMinutos());
+        System.out.println("   - Detalles count: " + sesion.getDetalles().size());
+        
+        SesionPomodoro sesionGuardada = sesionRepository.save(sesion);
+        
+        System.out.println("✅ Sesión guardada con ID: " + sesionGuardada.getId());
+        System.out.println("   - Tiempo total minutos después de guardar: " + sesionGuardada.getTiempoTotalMinutos());
+        
+        return sesionGuardada;
     }
 
     public List<SesionPomodoro> getMisSesiones(Long usuarioId) {
         Usuario usuario = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
-        return sesionRepository.findByUsuario(usuario);
+        List<SesionPomodoro> sesiones = sesionRepository.findByUsuario(usuario);
+        
+        System.out.println("📊 Obteniendo sesiones del usuario " + usuario.getUsername());
+        System.out.println("   - Total sesiones encontradas: " + sesiones.size());
+        if (!sesiones.isEmpty()) {
+            SesionPomodoro primera = sesiones.get(0);
+            System.out.println("   - Primera sesión ID: " + primera.getId());
+            System.out.println("   - tiempoTotalMinutos: " + primera.getTiempoTotalMinutos());
+            System.out.println("   - totalPomodoros: " + primera.getTotalPomodoros());
+        }
+        
+        return sesiones;
     }
 
     public SesionPomodoro getSesionById(Long sesionId, Long usuarioId) {
@@ -53,6 +75,12 @@ public class SesionService {
                 usuarioRepository.findById(usuarioId)
                         .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado")))
                 .orElseThrow(() -> new ResourceNotFoundException("Sesión no encontrada"));
+
+        // Verificar si ya está completada
+        if (sesion.getCompletada()) {
+            System.out.println("⚠️ Intento de completar sesión ya completada: " + sesionId);
+            return; // Ya está completada, no hacer nada
+        }
 
         // 1. Marcar como completada
         sesion.setCompletada(true);
@@ -123,6 +151,22 @@ public class SesionService {
             usuario.setStreakDias(1);
         }
         // Si es el mismo día, no hacer nada
+    }
+
+    @Transactional
+    public void eliminarSesion(Long sesionId, Long usuarioId) {
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+        
+        SesionPomodoro sesion = sesionRepository.findByIdAndUsuario(sesionId, usuario)
+                .orElseThrow(() -> new ResourceNotFoundException("Sesión no encontrada"));
+
+        // Solo se pueden eliminar sesiones NO completadas
+        if (sesion.getCompletada()) {
+            throw new IllegalStateException("No se puede eliminar una sesión completada");
+        }
+
+        sesionRepository.delete(sesion);
     }
 }
 

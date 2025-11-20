@@ -23,8 +23,22 @@ public class PersonajeController {
     @GetMapping
     public ResponseEntity<List<PersonajeSanrio>> getAllPersonajes() {
         List<PersonajeSanrio> personajes = personajeService.getAllPersonajes();
-        System.out.println("🔍 DEBUG: PersonajeController.getAllPersonajes() - Devolviendo " + personajes.size() + " personajes");
+        System.out.println(
+                "🔍 DEBUG: PersonajeController.getAllPersonajes() - Devolviendo " + personajes.size() + " personajes");
         return ResponseEntity.ok(personajes);
+    }
+
+    // Endpoint para Admin/Vendedor: devuelve TODOS los personajes (incluyendo no
+    // disponibles)
+    @GetMapping("/admin/all")
+    public ResponseEntity<List<PersonajeSanrio>> getAllPersonajesAdmin() {
+        return ResponseEntity.ok(personajeService.getAllPersonajesAdmin());
+    }
+
+    // Endpoint para Admin/Vendedor: devuelve TODAS las adopciones
+    @GetMapping("/admin/adopciones")
+    public ResponseEntity<List<InventarioUsuario>> getAllAdopciones() {
+        return ResponseEntity.ok(personajeService.getAllAdopciones());
     }
 
     @GetMapping("/{id}")
@@ -38,12 +52,14 @@ public class PersonajeController {
     }
 
     @GetMapping("/disponibles")
-    public ResponseEntity<List<PersonajeSanrio>> getPersonajesDisponibles(@AuthenticationPrincipal UserPrincipal userPrincipal) {
+    public ResponseEntity<List<PersonajeSanrio>> getPersonajesDisponibles(
+            @AuthenticationPrincipal UserPrincipal userPrincipal) {
         return ResponseEntity.ok(personajeService.getPersonajesDisponibles(userPrincipal.getId()));
     }
 
     @GetMapping("/desbloqueados")
-    public ResponseEntity<List<InventarioUsuario>> getPersonajesDesbloqueados(@AuthenticationPrincipal UserPrincipal userPrincipal) {
+    public ResponseEntity<List<InventarioUsuario>> getPersonajesDesbloqueados(
+            @AuthenticationPrincipal UserPrincipal userPrincipal) {
         return ResponseEntity.ok(personajeService.getPersonajesDesbloqueados(userPrincipal.getId()));
     }
 
@@ -62,10 +78,16 @@ public class PersonajeController {
         return ResponseEntity.ok().build();
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<PersonajeSanrio> updatePersonaje(
+            @PathVariable Long id,
+            @RequestBody PersonajeSanrio personaje) {
+        return ResponseEntity.ok(personajeService.updatePersonaje(id, personaje));
+    }
+
     // Endpoint de diagnóstico (público para debugging)
     @GetMapping("/diagnostico")
     public ResponseEntity<Object> diagnostico() {
         return ResponseEntity.ok(personajeService.getDiagnostico());
     }
 }
-

@@ -1,5 +1,8 @@
 package ClarityTimer.ClarityTimer_backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -22,6 +25,7 @@ public class SesionPomodoro {
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_id", nullable = false)
+    @JsonIgnoreProperties({"sesiones", "inventario", "historialPuntos", "password", "hibernateLazyInitializer", "handler"})
     private Usuario usuario;
     
     @Column(nullable = false)
@@ -35,9 +39,11 @@ public class SesionPomodoro {
     
     // 🎮 GAMIFICACIÓN
     @Column(name = "total_pomodoros")
+    @JsonProperty("totalPomodoros")
     private Integer totalPomodoros = 0; // Cantidad de productos en la boleta
     
     @Column(name = "tiempo_total_minutos")
+    @JsonProperty("tiempoTotalMinutos")
     private Integer tiempoTotalMinutos = 0;
     
     @Column(name = "puntos_ganados", nullable = false)
@@ -48,6 +54,7 @@ public class SesionPomodoro {
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "personaje_usado_id")
+    @JsonIgnoreProperties({"inventarios", "hibernateLazyInitializer", "handler"})
     private PersonajeSanrio personajeUsado; // Personaje activo durante la sesión
     
     @Column(nullable = false)
@@ -55,6 +62,7 @@ public class SesionPomodoro {
     
     // Relaciones
     @OneToMany(mappedBy = "sesion", cascade = CascadeType.ALL)
+    @JsonManagedReference
     private List<DetalleSesion> detalles = new ArrayList<>();
 }
 

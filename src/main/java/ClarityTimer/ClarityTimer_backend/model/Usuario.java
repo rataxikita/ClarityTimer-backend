@@ -1,5 +1,6 @@
 package ClarityTimer.ClarityTimer_backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -54,14 +55,18 @@ public class Usuario {
     
     // Relaciones
     @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<SesionPomodoro> sesiones = new ArrayList<>();
     
     @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<InventarioUsuario> inventario = new ArrayList<>();
     
     @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<HistorialPuntos> historialPuntos = new ArrayList<>();
     
     @OneToOne(mappedBy = "usuario", cascade = CascadeType.ALL)
+    @JsonIgnore
     private ConfiguracionUsuario configuracion;
 }

@@ -47,5 +47,13 @@ public class SesionController {
         sesionService.completarSesion(id, userPrincipal.getId());
         return ResponseEntity.ok().build();
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> eliminarSesion(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        sesionService.eliminarSesion(id, userPrincipal.getId());
+        return ResponseEntity.noContent().build();
+    }
 }
 

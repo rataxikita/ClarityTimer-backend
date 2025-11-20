@@ -56,19 +56,29 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/auth/**").permitAll()
-                        .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/api-docs/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/api-docs/**", "/v3/api-docs/**")
+                        .permitAll()
                         // Endpoints públicos de personajes (deben ir ANTES de los protegidos)
-                        .requestMatchers(HttpMethod.GET, "/api/v1/personajes").permitAll() // Listar todos los personajes
+                        .requestMatchers(HttpMethod.GET, "/api/v1/personajes").permitAll() // Listar todos los
+                                                                                           // personajes
                         .requestMatchers(HttpMethod.GET, "/api/v1/personajes/diagnostico").permitAll() // Diagnóstico
-                        .requestMatchers(HttpMethod.GET, "/api/v1/personajes/*").permitAll() // Ver un personaje específico
+                        .requestMatchers(HttpMethod.GET, "/api/v1/personajes/*").permitAll() // Ver un personaje
+                                                                                             // específico
+                        // Endpoint para Admin/Vendedor: ver TODOS los personajes
+                        .requestMatchers(HttpMethod.GET, "/api/v1/personajes/admin/all").hasAnyRole("ADMIN", "VENDEDOR")
+                        // Endpoint para Admin/Vendedor: ver TODAS las adopciones
+                        .requestMatchers(HttpMethod.GET, "/api/v1/personajes/admin/adopciones")
+                        .hasAnyRole("ADMIN", "VENDEDOR")
+                        // Endpoints de actualización de personajes (solo ADMIN)
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/personajes/*").hasRole("ADMIN")
                         // Endpoints protegidos de personajes
                         .requestMatchers("/api/v1/personajes/**").hasAnyRole("CLIENTE", "VENDEDOR", "ADMIN")
                         .requestMatchers("/api/v1/sesiones/**").hasAnyRole("CLIENTE", "VENDEDOR", "ADMIN")
                         .requestMatchers("/api/v1/categorias/**").hasAnyRole("CLIENTE", "VENDEDOR", "ADMIN")
                         .requestMatchers("/api/v1/estadisticas/**").hasAnyRole("CLIENTE", "VENDEDOR", "ADMIN")
+                        .requestMatchers("/api/v1/notas/**").hasAnyRole("CLIENTE", "VENDEDOR", "ADMIN")
                         .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
-                        .anyRequest().authenticated()
-                );
+                        .anyRequest().authenticated());
 
         http.authenticationProvider(authenticationProvider());
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
@@ -88,4 +98,3 @@ public class SecurityConfig {
         return source;
     }
 }
-

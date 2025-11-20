@@ -39,5 +39,8 @@ public class InventarioUsuario {
     
     @Column(name = "veces_usado", nullable = false)
     private Integer vecesUsado = 0; // Estadística
+
+    @Column(name = "codigo_certificado", unique = true)
+    private String codigoCertificado; // UUID del certificado
 }
 

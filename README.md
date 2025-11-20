@@ -18,30 +18,97 @@ Backend REST API para aplicación Pomodoro con sistema de gamificación mediante
 
 ## 🚀 Inicio Rápido
 
-### Requisitos
-- Java 17+
-- Maven 3.6+
-- MySQL 8.0+
+### Requisitos Previos
+- **Java 17 o superior** - [Descargar JDK](https://www.oracle.com/java/technologies/downloads/)
+- **Maven 3.6+** - [Descargar Maven](https://maven.apache.org/download.cgi)
+- **MySQL 8.0+** - [Descargar MySQL](https://dev.mysql.com/downloads/mysql/)
 
-### Configuración
+### Instalación Paso a Paso
 
-1. **Configurar base de datos MySQL:**
-   ```sql
-   CREATE DATABASE claritytimer_db;
-   ```
+#### 1. Clonar el Repositorio
+```bash
+git clone https://github.com/tu-usuario/ClarityTimer-backend.git
+cd ClarityTimer-backend/ClarityTimer-backend
+```
 
-2. **Configurar `application.properties`:**
-   - Ajustar `spring.datasource.username` y `spring.datasource.password`
-   - La base de datos se crea automáticamente si no existe
+#### 2. Configurar Base de Datos MySQL
 
-3. **Ejecutar la aplicación:**
-   ```bash
-   mvn spring-boot:run
-   ```
+**Opción A: Usando MySQL Workbench o línea de comandos**
+```sql
+CREATE DATABASE claritytimer_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
 
-4. **Acceder a Swagger:**
-   - URL: http://localhost:8080/swagger-ui.html
-   - API Docs: http://localhost:8080/api-docs
+**Opción B: Usando el script de diagnóstico (Windows)**
+```powershell
+.\diagnostico.ps1
+```
+Este script verifica automáticamente tu instalación de MySQL y crea la base de datos si no existe.
+
+#### 3. Configurar Credenciales de Base de Datos
+
+Edita el archivo `src/main/resources/application.properties`:
+
+```properties
+# Configuración de Base de Datos
+spring.datasource.url=jdbc:mysql://localhost:3306/claritytimer_db?createDatabaseIfNotExist=true
+spring.datasource.username=TU_USUARIO_MYSQL
+spring.datasource.password=TU_CONTRASEÑA_MYSQL
+
+# JPA/Hibernate
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.format_sql=true
+
+# Puerto del servidor
+server.port=8080
+```
+
+**⚠️ Importante:** Reemplaza `TU_USUARIO_MYSQL` y `TU_CONTRASEÑA_MYSQL` con tus credenciales reales de MySQL.
+
+#### 4. Instalar Dependencias
+```bash
+mvn clean install
+```
+
+#### 5. Ejecutar la Aplicación
+
+**Opción A: Usando Maven**
+```bash
+mvn spring-boot:run
+```
+
+**Opción B: Usando el script de ejecución (Windows)**
+```powershell
+.\run-backend.ps1
+```
+
+**Opción C: Ejecutar el JAR compilado**
+```bash
+java -jar target/ClarityTimer-backend-0.0.1-SNAPSHOT.jar
+```
+
+#### 6. Verificar que el Backend está Funcionando
+
+Abre tu navegador y accede a:
+- **Swagger UI**: http://localhost:8080/swagger-ui/index.html
+- **API Docs JSON**: http://localhost:8080/v3/api-docs
+- **Health Check**: http://localhost:8080/actuator/health (si está habilitado)
+
+Si ves la interfaz de Swagger, ¡el backend está funcionando correctamente! ✅
+
+## 📖 Documentación de la API (Swagger)
+
+Una vez que el backend esté corriendo, accede a la documentación interactiva de Swagger:
+
+```
+http://localhost:8080/swagger-ui/index.html
+```
+
+Desde Swagger puedes:
+- 📋 Ver todos los endpoints disponibles
+- 🧪 Probar las APIs directamente desde el navegador
+- 📝 Ver los modelos de datos (DTOs)
+- 🔐 Autenticarte con JWT para probar endpoints protegidos
 
 ## 📡 Endpoints Principales
 
