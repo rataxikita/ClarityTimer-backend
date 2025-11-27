@@ -22,5 +22,7 @@ public class UsuarioResponse {
     private Integer streakDias;
     private Long personajeActivoId;
     private String personajeActivoNombre;
+    private Boolean activo;
+    private LocalDateTime fechaRegistro;
 }
 
