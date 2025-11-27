@@ -1,6 +1,7 @@
 package ClarityTimer.ClarityTimer_backend.service;
 
 import ClarityTimer.ClarityTimer_backend.dto.AuthResponse;
+import ClarityTimer.ClarityTimer_backend.dto.ChangePasswordRequest;
 import ClarityTimer.ClarityTimer_backend.dto.LoginRequest;
 import ClarityTimer.ClarityTimer_backend.dto.RegisterRequest;
 import ClarityTimer.ClarityTimer_backend.dto.UsuarioResponse;
@@ -8,7 +9,6 @@ import ClarityTimer.ClarityTimer_backend.exception.BadRequestException;
 import ClarityTimer.ClarityTimer_backend.model.*;
 import ClarityTimer.ClarityTimer_backend.repository.*;
 import ClarityTimer.ClarityTimer_backend.security.JwtTokenProvider;
-import ClarityTimer.ClarityTimer_backend.security.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -107,26 +107,61 @@ public class AuthService {
     }
 
     public AuthResponse login(LoginRequest request) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
-        );
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        String token = jwtTokenProvider.generateToken(authentication);
+        // Verificar que el usuario existe y está activo ANTES de autenticar
+        Usuario usuario = usuarioRepository.findByUsername(request.getUsername())
+                .orElseThrow(() -> new BadRequestException("Credenciales inválidas"));
+        
+        if (!usuario.getActivo()) {
+            throw new BadRequestException("Usuario deshabilitado. Comunícate con el administrador.");
+        }
 
-        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
-        Usuario usuario = usuarioRepository.findById(userPrincipal.getId())
-                .orElseThrow(() -> new BadRequestException("Usuario no encontrado"));
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
+            );
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            String token = jwtTokenProvider.generateToken(authentication);
 
-        return AuthResponse.builder()
-                .token(token)
-                .usuario(mapToResponse(usuario))
-                .build();
+            return AuthResponse.builder()
+                    .token(token)
+                    .usuario(mapToResponse(usuario))
+                    .build();
+        } catch (org.springframework.security.core.AuthenticationException e) {
+            // Si Spring Security rechaza por cuenta deshabilitada, mostrar mensaje claro
+            if (e.getMessage() != null && (e.getMessage().contains("disabled") || e.getMessage().contains("deshabilitado"))) {
+                throw new BadRequestException("Usuario deshabilitado. Comunícate con el administrador.");
+            }
+            // Para otros errores de autenticación (credenciales incorrectas, etc.)
+            throw new BadRequestException("Credenciales inválidas");
+        }
     }
 
     public UsuarioResponse getCurrentUser(Long userId) {
         Usuario usuario = usuarioRepository.findById(userId)
                 .orElseThrow(() -> new BadRequestException("Usuario no encontrado"));
         return mapToResponse(usuario);
+    }
+
+    @Transactional
+    public void changePassword(Long userId, ChangePasswordRequest request) {
+        Usuario usuario = usuarioRepository.findById(userId)
+                .orElseThrow(() -> new BadRequestException("Usuario no encontrado"));
+
+        // Verificar que la contraseña actual sea correcta
+        if (!passwordEncoder.matches(request.getCurrentPassword(), usuario.getPassword())) {
+            throw new BadRequestException("La contraseña actual es incorrecta");
+        }
+
+        // Verificar que la nueva contraseña sea diferente a la actual
+        if (passwordEncoder.matches(request.getNewPassword(), usuario.getPassword())) {
+            throw new BadRequestException("La nueva contraseña debe ser diferente a la actual");
+        }
+
+        // Encriptar y actualizar la contraseña
+        usuario.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        usuarioRepository.save(usuario);
+        
+        log.info("Contraseña actualizada para el usuario con ID: {}", userId);
     }
 
     /**
@@ -191,6 +226,8 @@ public class AuthService {
                 .streakDias(usuario.getStreakDias())
                 .personajeActivoId(personajeActivo != null ? personajeActivo.getPersonaje().getId() : null)
                 .personajeActivoNombre(personajeActivo != null ? personajeActivo.getPersonaje().getNombre() : null)
+                .activo(usuario.getActivo())
+                .fechaRegistro(usuario.getFechaRegistro())
                 .build();
     }
 }
